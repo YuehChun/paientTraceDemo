@@ -1,0 +1,45 @@
+
+.mapRow{
+	height: 720px;
+}
+#map { 
+	height: 720px;
+}
+.popupMap{
+	font-size:20px;
+	text-align: center;
+}
+.popupSt2{
+	font-size: 15px;
+}
+.popupFont{
+	font-size: 13px;
+}
+.listDataTimeFont{
+	font-size: 16px;
+	width:45%;
+	display: inline;
+	line-height:40px;
+}
+.listLocationFont{
+	font-size: 16px;
+	display: inline;
+	float:right;
+	width: 53%
+}
+.listLocationLinkFont{
+	font-size: 8px;
+}
+.vcenter{
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+.block {
+    width: 100%;
+}
+.tableArea{
+  height:600px;
+  overflow-y: scroll;
+}
+

@@ -1,0 +1,137 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>Tags visualization with GeoMap - Demo </title>
+<script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
+<link rel="stylesheet" href="css/leaflet.css" />
+<!-- <link rel="stylesheet" href="css/bootstrap.min.css" /> -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
+   integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
+   crossorigin=""/>
+
+<link rel="stylesheet" href="css/login.css" />
+<link rel="stylesheet" href="css/fakeLoader.min.css" />
+<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script> 
+ <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+   integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+   crossorigin=""></script>
+<script src="js/leaflet.curve.js"></script>
+<!-- <script src="js/jquery-3.2.1.slim.min.js"></script> -->
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v3.min.js"></script>
+<script src="js/Leaflet.Dialog.js"></script>
+<script src="js/fakeLoader.js"></script>
+<!-- <script src="https://d3js.org/d3-selection.v1.min.js"></script> -->
+
+<!-- Load c3.css -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<link href="css/c3.min.css" rel="stylesheet">
+<link href="css/main.css" rel="stylesheet">
+<link href="dist/leaflet.fullscreen.css" rel="stylesheet">
+<link href="css/Leaflet.Dialog.css" rel="stylesheet">
+
+
+<!-- Load d3.js and c3.js -->
+<script src="js/c3.min.js"></script>
+<script src="dist/Leaflet.fullscreen.min.js"></script>
+
+<script src="js/preProcess.js"></script>
+<!-- <script src="js/upload.js"></script> -->
+</head>
+<body style="background-color:#fff;">
+
+<div id="map_area" style="width: 100%;height: 100%;">
+  <div class="container-fluid">
+    <div class="row" style="margin:10px">
+      <div class="col-xs-3 col-md-3 col-lg-3 container" >
+            <div class="alert alert-primary" role="alert">
+              0988247686 的移動軌跡
+
+            </div>
+            <div class="btn-group col-xs-6 col-md-6 col-lg-6">
+                <button type="button" id="select_t1" class="btn btn-primary dropdown-toggle block" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 請選擇日期項目 </button>
+                <div class="dropdown-menu block" id="day_menu">
+                  <a class="dropdown-item" href="#"  onclick="callSelectedT1('all');">全天</a>
+                </div>
+            </div>
+          <hr>
+          <div class="card">
+            <ul class="list-group list-group-horizontal-md tableArea" id="listDataTime">
+              <li class="list-group-item" id="listSeq_non">
+                等待資料載入
+              </li>
+            </ul>
+          </div>
+          <hr>
+      </div>
+      <div class="col-xs-9 col-md-9 col-lg-9" id="map"></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+// upload_button("uploader", load_dataset);
+var map = L.map('map').setView([25.1274977,121.4927091], 13);
+var FullS=new L.Control.Fullscreen();
+FullS.setPosition('bottomright');
+map.addControl(FullS);
+var mapZoomLevel = map.getZoom();
+map.zoomControl.setPosition('bottomright');
+var Leaflet_Markers=[]
+
+L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',apikey:'c4377a218be242ddb3297260d216b11b'}).addTo(map);
+
+var colorSet2 = ['#e6194b','#f58231','#ffe119','#bcf60c','#3cb44b','#46f0f0','#4363d8','#911eb4','#f032e6','#808080'];
+
+
+function LoadCSDBackFunc( data ){
+      tempArrayData=data;
+      preLoadProcess(tempArrayData)
+}
+function LoadingData(){
+    d3.csv("./logs/fast_data_0917627538_v5.csv", LoadCSDBackFunc);
+    map.setView([25.115387 , 121.511559], 13);
+}
+targetSeq=0;
+
+function switchMarkerStyle(a,b){
+    console.log()
+    Leaflet_Markers[a].setStyle({fillColor:"#000"});
+    Leaflet_Markers[b].setStyle({fillColor:"#FFC549"});
+    // Leaflet_Markers[a].setStyle({radius:"4"});
+    // Leaflet_Markers[b].setStyle({radius:"7"});
+
+    $("#listSeq_"+a).css({"background-color":"#FFFFFF"});
+    $("#listSeq_"+b).css({"background-color":"#C5FFF4"});
+}
+
+
+function callThisPoint(seqName){
+  map.setView([Leaflet_Markers[seqName]._latlng.lat , Leaflet_Markers[seqName]._latlng.lng]);
+  Leaflet_Markers[seqName].openPopup();
+  if (seqName!=targetSeq){
+    Leaflet_Markers[seqName].setStyle({fillColor:"#FFC549",radius:"9"});
+    if(Leaflet_Markers[targetSeq]!=null){
+      Leaflet_Markers[targetSeq].setStyle({fillColor:"#000000",radius:"5"});
+    }
+    $("#listSeq_"+targetSeq).css({"background-color":"#FFFFFF"});
+    $("#listSeq_"+seqName).css({"background-color":"#C5FFF4"});
+    targetSeq = seqName;
+  }
+  
+}
+
+LoadingData()
+function gotCheck(){
+  var code = $("#inputCode").val()
+  load_js(code)
+}
+
+</script>
+
+</body>
+</html>
