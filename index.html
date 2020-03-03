@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Tags visualization with GeoMap - Demo </title>
+<title>Paient Trace 14Days Track on GeoMap - Demo </title>
 <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
 <link rel="stylesheet" href="css/leaflet.css" />
 <!-- <link rel="stylesheet" href="css/bootstrap.min.css" /> -->
@@ -47,13 +47,13 @@
     <div class="row" style="margin:10px">
       <div class="col-xs-3 col-md-3 col-lg-3 container" >
             <div class="alert alert-primary" role="alert">
-              0988247686 的移動軌跡
+              Hugo Tsai 的移動軌跡
 
             </div>
             <div class="btn-group col-xs-6 col-md-6 col-lg-6">
                 <button type="button" id="select_t1" class="btn btn-primary dropdown-toggle block" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 請選擇日期項目 </button>
                 <div class="dropdown-menu block" id="day_menu">
-                  <a class="dropdown-item" href="#"  onclick="callSelectedT1('all');">全天</a>
+                  <a class="dropdown-item" href="#"  onclick="callSelectedT1('all');">All Day</a>
                 </div>
             </div>
           <hr>
@@ -91,9 +91,10 @@ var colorSet2 = ['#e6194b','#f58231','#ffe119','#bcf60c','#3cb44b','#46f0f0','#4
 function LoadCSDBackFunc( data ){
       tempArrayData=data;
       preLoadProcess(tempArrayData)
+      callSelectedDate('0201')
 }
 function LoadingData(){
-    d3.csv("./logs/fast_data_0917627538_v5.csv", LoadCSDBackFunc);
+    d3.csv("./logs/pass_0988247686.csv", LoadCSDBackFunc);
     map.setView([25.115387 , 121.511559], 13);
 }
 targetSeq=0;
@@ -102,8 +103,6 @@ function switchMarkerStyle(a,b){
     console.log()
     Leaflet_Markers[a].setStyle({fillColor:"#000"});
     Leaflet_Markers[b].setStyle({fillColor:"#FFC549"});
-    // Leaflet_Markers[a].setStyle({radius:"4"});
-    // Leaflet_Markers[b].setStyle({radius:"7"});
 
     $("#listSeq_"+a).css({"background-color":"#FFFFFF"});
     $("#listSeq_"+b).css({"background-color":"#C5FFF4"});
@@ -130,6 +129,7 @@ function gotCheck(){
   var code = $("#inputCode").val()
   load_js(code)
 }
+
 
 </script>
 

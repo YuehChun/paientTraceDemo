@@ -46,7 +46,7 @@ function showHomeData(hData){
     });
     var st2Color = {}
     var colorNum = colorSet2.length
-    console.log(items)
+    
     items.forEach(function(k ,i){
       colorIndex = i%colorNum
       st2Color[k[0]] =  colorSet2[colorIndex]
@@ -75,9 +75,10 @@ function showHomeData(hData){
 function parserDatatime(TimeNow){
   var yyyy = TimeNow.toLocaleDateString().slice(0,4)
   var MM = (TimeNow.getMonth()<10 ? '0' : '')+(TimeNow.getMonth());
-  var dd = (TimeNow.getDate()<10 ? '0' : '')+TimeNow.getDate();
-  var h = (TimeNow.getHours()<10 ? '0' : '')+TimeNow.getHours();
-  var m = (TimeNow.getMinutes()<10 ? '0' : '')+TimeNow.getMinutes();
+  var dd = (TimeNow.getDate()<10 ? '0' : '')+(TimeNow.getDate());
+  var h = (TimeNow.getHours()<10 ? '0' : '')+(TimeNow.getHours());
+  var m = (TimeNow.getMinutes()<10 ? '0' : '')+(TimeNow.getMinutes());
+  var s = (TimeNow.getSeconds()<10 ? '0' : '')+(TimeNow.getSeconds());
   return [(MM+'-'+dd), (h+":"+m), (MM+dd)]
 }
 
@@ -93,16 +94,18 @@ allListItem=""
 function preLoadProcess(fullData){
     dict = {}
     fullData.forEach(function(e){
-      var dataTime = e.datetime
+      var dataTime = e.time
       var lon = parseFloat(e.x)
       var lat = parseFloat(e.y)
-      var sequence = e.seq
-      var dt = new Date(year = dataTime.substr(0,4), month = dataTime.substr(4,2), day = dataTime.substr(6,2), hours = dataTime.substr(9,2), minutes = dataTime.substr(12,2));
+      var stayTime = parseFloat(e.staytime)
+      var stringStayTime = Math.floor(stayTime/3600)+'H'+Math.floor((stayTime%3600)/60)+'M'
+
+      console.log(dataTime)
+      var dt = new Date(year = dataTime.substr(0,4), month = dataTime.substr(5,2), day = dataTime.substr(8,2), hours = dataTime.substr(11,2), minutes = dataTime.substr(14,2), seconds = dataTime.substr(17,2));
       var dtString = parserDatatime(dt)
-
-      // var title = dt.getFullYear() + "-" + paddingLeft(dt.getMonth(),2) + "-" + paddingLeft(dt.getDate(),2) + " "+ paddingLeft(dt.getHours(),2) + ":"+ paddingLeft(dt.getMinutes(),2)
-      dict[sequence]= {'lon': lon , 'lat' : lat , 'dt': dtString , 'seq' : sequence, 'village':e.village, 'date':dtString[2]}
-
+      console.log(toLocaleDateString)
+      var ts = dt.getTime()/1000
+      dict[ts]= {'lon': lon , 'lat' : lat , 'dt': dtString , 'ts' : ts+'', 'stayTime': stringStayTime , 'date':dtString[2]}
     });
 
 
@@ -119,9 +122,6 @@ function preLoadProcess(fullData){
   i = 0
   latSum = 0
 
-// <a class="dropdown-item" href="#"  onclick="callSelectedT1('all');">全天</a>
-
-
   dateQueue = {}
   dateListQueue = {}
   items.forEach(function(e){
@@ -133,25 +133,26 @@ function preLoadProcess(fullData){
         'x' : markD.lon,
         'y' : markD.lat,
         'dt' : markD.dt,
-        'seq' : markD.seq
+        'ts' : markD.ts
     }
-    tempL_M = drawMarkerFunc(_marker)
-    Leaflet_Markers[markD.seq]=tempL_M;
+    tempL_M = drawMarkerFunc(_marker) 
+    Leaflet_Markers[markD.ts]=tempL_M;
     tempL_M.addTo(map);
 
-    listItemString='<li class="list-group-item" id="listSeq_'+markD.seq+'" onmouseover="callThisPoint(\''+markD.seq+'\')">'+
+    listItemString='<li class="list-group-item" id="listSeq_'+markD.ts+'" onmouseover="callThisPoint(\''+markD.ts+'\')">'+
                 '<div class="badge badge-warning listDataTimeFont" role="alert">'+markD.dt[0]+' '+markD.dt[1]+'</div>'+
-                '<div class="listLocationFont"><div>'+markD.village+'</div>'+
-                '<div class="listLocationLinkFont"> L: <a href="https://google.com.tw/maps/@'+markD.lat+','+markD.lon+',17.34z?hl=zh-TW" target="_blank">'+markD.lat+','+markD.lon+'</a></div></div></li>';
+                '<div class="listLocationFont"><div>停留時間：'+markD.stayTime+'</div>'+
+                '<div class="listLocationLinkFont"> L: <a href="https://google.com.tw/maps/@'+markD.lat+','+markD.lon+',17.34z?hl=zh-TW" target="_blank">'+(markD.lat+' ').substr(0,6)+','+(markD.lon+' ').substr(0,7)+'</a></div></div></li>';
+
     allListItem+=listItemString
     if(markD.date in dateQueue){
-      dateQueue[markD.date][markD.seq]=tempL_M
-      dateListQueue[markD.date][markD.seq]=listItemString
+      dateQueue[markD.date][markD.ts]=tempL_M
+      dateListQueue[markD.date][markD.ts]=listItemString
     }else{
       dateQueue[markD.date]={}
       dateListQueue[markD.date]={}
-      dateQueue[markD.date][markD.seq]=tempL_M
-      dateListQueue[markD.date][markD.seq]=listItemString
+      dateQueue[markD.date][markD.ts]=tempL_M
+      dateListQueue[markD.date][markD.ts]=listItemString
     }
 
   });
@@ -168,30 +169,11 @@ function preLoadProcess(fullData){
   $('#day_menu').html(theDateSelection)
 
 
-  // for(local in theT1Data[t1]){
-  //     st2 = theT1Data[t1][local]['st2']
-      
-  //     // tempL_M.addTo(_map).on('click' ,L.bind(HiLightFunc, null, _map , _marker['noName']));
-  //   }
-
-  // select_t1 = ""
-  // str_t1_menu = "<a class='dropdown-item' href='#' onclick='callSelectedT1(0);'> 頂層 </a>"
-  // for (x in mainType){
-  //   if(select_t1==""){
-  //     select_t1=x
-  //   }
-  //   str_t1_menu+="<a class='dropdown-item' href='#' onclick='callSelectedT1(\""+x+"\");'>"+x+"</a>"
-  // }
-  // $("#t1_menu").html(str_t1_menu)
-  // // callSelectedT1(select_t1)
-
-  // showHomeData(homeShowItem)
-
 }
 
 
 function drawMarkerFunc(_marker){
-  var popupHTML = "<div class='popupMap' id='marker_"+_marker['seq']+"'>"+_marker['dt'][0]+"</div>"+
+  var popupHTML = "<div class='popupMap' id='marker_"+_marker['ts']+"'>"+_marker['dt'][0]+"</div>"+
     "<div class=\"alert alert-warning popupSt2\" role=\"alert\">"+_marker['dt'][1]+"</div>";
   var tmp_marker = L.circleMarker([_marker['y'],_marker['x']],{
     title: _marker['d_time'],
@@ -233,37 +215,19 @@ function callSelectedDate(t1){
         map.removeLayer(dateQueue[cur_date][i])
       }
     }
-    for(i in dateQueue[t1]){
-      dateQueue[t1][i].addTo(map)
-      showItem+=dateListQueue[t1][i]
-    }
+
+    Object.keys(dateQueue[t1]).map(function(key, index) {
+      console.log(key)
+      dateQueue[t1][key].addTo(map)
+      showItem+=dateListQueue[t1][key]
+    });
+
     $("#select_t1").html(t1.substr(0,2)+'月'+t1.substr(2,2)+'日')
     $("#listDataTime").html(showItem)
   }
   cur_date=t1
 }
 
-// function callSelectedT1(t1){
-//   if (t1==0){
-//     $("#select_t1").html(" 請選擇母項目 ")
-//     $("#select_st2").html(" 請選擇子項目 ")
-//     removeAllMapElement()
-//     $("#st2_menu").html("<a class=\"dropdown-item\" href=\"#\"> 無子項目 </a>")
-//     $("#T1Table1").html("<tr> <th scope=\"row\" colspan=\"5\">請選擇母項</th> </tr>")
-//     $("#T1Table2").html("<tr> <th scope=\"row\" colspan=\"5\">請選擇母項</th> </tr>")
-//     showHomeData(homeShowItem)
-//   }else{
-//     $("#select_t1").html(t1)
-//     $("#select_st2").html(" 請選擇子項目 ")
-//     removeAllMapElement()
-//     getT1Item(t1)
-//     str_t2_menu = ""
-//     mainType[t1].map((x)=>{
-//       str_t2_menu+="<a class='dropdown-item' href='#' onclick='callSelectedT2(\""+t1+"\",\""+x+"\");'>"+x+"</a>"
-//     });
-//     $("#st2_menu").html(str_t2_menu)
-//   }
-// }
 
 
 function callSelectedT2(t1,st2){
@@ -317,17 +281,6 @@ function getT1Item(t1){
   }
 
 
-
-  var strTable_1 = ""
-  var k_i=1
-  sortT1Sort.map( (x) => {
-    // find the top st2 by every local
-    num = new Number(x['percent']*100);
-    showNum = num.toFixed(1)+"%"
-    strTable_1+="<tr><th scope=\"row\">"+k_i+"</th> <td>"+x['local']+"</td> <td>"+x['st2']+"</td> <td>"+x['numpeo']+"</td> <td>"+showNum+"</td> </tr>"
-    k_i+=1
-  });
-  $("#T1Table1").html(strTable_1)
 
   function SelectedT1ForDrawMarker(st2_bucket){
     var items = Object.keys(st2_bucket).map(function(key) {
@@ -409,31 +362,3 @@ function getT1Item(t1){
   writeTable2(t1)
 }
 
-
-// function getST2Item(t1,st2){
-//   theData = dataTree[t1][st2]
-//   var max_opacity = 0,
-//       min_opacity = 99999;
-//   for(local in theData){
-//     max_opacity=max_opacity<theData[local]['percent']?theData[local]['percent']:max_opacity
-//     min_opacity=min_opacity>theData[local]['percent']?theData[local]['percent']:min_opacity
-//   }
-//   for(local in theData){
-//     _marker = {
-//       'x':theData[local]['cx'],
-//       'y':theData[local]['cy'],
-//       'radius':getRadius(theData[local]['numpeo']),
-//       'percent':theData[local]['percent'],
-//       'fillColor':'#333',
-//       'opacity':getOpactity(max_opacity,min_opacity,theData[local]['percent']),
-//       'numpeo':theData[local]['numpeo'],
-//       'local_name':local,
-//       'st2':st2
-//     }
-//     tempL_M = drawMarkerFunc(_marker)
-//     Leaflet_Marker.push(tempL_M);
-//     tempL_M.addTo(map);
-//     // tempL_M.addTo(_map).on('click' ,L.bind(HiLightFunc, null, _map , _marker['noName']));
-//   }
-
-// }
