@@ -8,6 +8,29 @@ var minVal=999999999
 var Leaflet_Marker = []
 
 
+function switchMarkerStyle(a,b){
+    Leaflet_Markers[a].setStyle({fillColor:"#000"});
+    Leaflet_Markers[b].setStyle({fillColor:"#FFC549"});
+
+    $("#listSeq_"+a).css({"background-color":"#FFFFFF"});
+    $("#listSeq_"+b).css({"background-color":"#C5FFF4"});
+}
+
+
+function callThisPoint(seqName){
+  map.setView([Leaflet_Markers[seqName]._latlng.lat , Leaflet_Markers[seqName]._latlng.lng]);
+  Leaflet_Markers[seqName].openPopup();
+  if (seqName!=targetSeq){
+    Leaflet_Markers[seqName].setStyle({fillColor:"#FFC549",radius:"9"});
+    if(Leaflet_Markers[targetSeq]!=null){
+      Leaflet_Markers[targetSeq].setStyle({fillColor:"#000000",radius:"5"});
+    }
+    $("#listSeq_"+targetSeq).css({"background-color":"#FFFFFF"});
+    $("#listSeq_"+seqName).css({"background-color":"#C5FFF4"});
+    targetSeq = seqName;
+  }
+  
+}
 
 function getRadius(n){
   range = Math.ceil((maxVal-minVal)/7)
@@ -98,12 +121,14 @@ function preLoadProcess(fullData){
       var lon = parseFloat(e.x)
       var lat = parseFloat(e.y)
       var stayTime = parseFloat(e.staytime)
-      var stringStayTime = Math.floor(stayTime/3600)+'H'+Math.floor((stayTime%3600)/60)+'M'
+      hh = Math.floor(stayTime/3600)
+      mm = Math.floor((stayTime%3600)/60)
+      shh = hh < 10 ? '0'+hh : hh
+      smm = mm < 10 ? '0'+mm : mm
+      var stringStayTime = shh+'H'+smm+'M'
 
-      console.log(dataTime)
       var dt = new Date(year = dataTime.substr(0,4), month = dataTime.substr(5,2), day = dataTime.substr(8,2), hours = dataTime.substr(11,2), minutes = dataTime.substr(14,2), seconds = dataTime.substr(17,2));
       var dtString = parserDatatime(dt)
-      console.log(toLocaleDateString)
       var ts = dt.getTime()/1000
       dict[ts]= {'lon': lon , 'lat' : lat , 'dt': dtString , 'ts' : ts+'', 'stayTime': stringStayTime , 'date':dtString[2]}
     });
@@ -158,7 +183,7 @@ function preLoadProcess(fullData){
   });
 
   $("#listDataTime").html(allListItem)
-  map.setView([(latSum/i) , (lonSum/i)], 8);
+  // map.setView([(latSum/i) , (lonSum/i)], 8);
 
 
   var theDateSelection = '<a class="dropdown-item" href="#"  onclick="callSelectedDate(\'all\');">全天</a>'
@@ -216,11 +241,18 @@ function callSelectedDate(t1){
       }
     }
 
+    sum_lat = 0
+    sum_lng = 0
     Object.keys(dateQueue[t1]).map(function(key, index) {
-      console.log(key)
       dateQueue[t1][key].addTo(map)
+      sum_lat+=dateQueue[t1][key]._latlng.lat
+      sum_lng+=dateQueue[t1][key]._latlng.lng
       showItem+=dateListQueue[t1][key]
     });
+    average_lat = sum_lat/Object.keys(dateQueue[t1]).length
+    average_lng = sum_lng/Object.keys(dateQueue[t1]).length
+    
+    map.setView([average_lat , average_lng], 14);
 
     $("#select_t1").html(t1.substr(0,2)+'月'+t1.substr(2,2)+'日')
     $("#listDataTime").html(showItem)
@@ -312,7 +344,6 @@ function getT1Item(t1){
       tempL_M = drawMarkerFunc(_marker)
       Leaflet_Marker(tempL_M);
       tempL_M.addTo(map);
-      // tempL_M.addTo(_map).on('click' ,L.bind(HiLightFunc, null, _map , _marker['noName']));
     }
   }
 
